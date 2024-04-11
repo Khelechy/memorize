@@ -27,7 +27,7 @@ func GetUserQr(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User id is required"})
 	}
 
-	qr, err := services.SaveUserQr(userId)
+	qr, ss, err := services.SaveUserQr(userId)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(err.Error())
@@ -35,6 +35,7 @@ func GetUserQr(c fiber.Ctx) error {
 
 	data := map[string]interface{}{
 		"qrUrl": qr,
+		"siteUrl": ss,
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User QR generated successfully", "data": data})

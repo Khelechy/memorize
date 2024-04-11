@@ -6,16 +6,19 @@ import (
 	"os"
 	"strings"
 
+	"github.com/khelechy/memorize/helpers"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/skip2/go-qrcode"
 )
 
 const (
-	publicStaticMediaRouteUrl = "http://localhost:3000/media/uploads"
-	publicStaticMediaRoute = "media/uploads"
-	fileUploadPath         = "./uploads"
-	baseUrl                = "http://memorize.com/memory"
+	publicStaticMediaRouteUrl = "https://memorize-c59r.onrender.com/media/uploads"
+	publicStaticMediaRoute    = "media/uploads"
+	fileUploadPath            = "./uploads"
+	staticSitePath            = "./views"
+	baseUrl                   = "https://memorize-c59r.onrender.com/memory"
 )
 
 func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) error {
@@ -39,15 +42,16 @@ func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) e
 	return nil
 }
 
-func SaveUserQr(userId string) (string, error) {
+func SaveUserQr(userId string) (string, string, error) {
 
 	fileName := fmt.Sprintf("%s-qr.png", userId)
+	staticSitePublicUrl := fmt.Sprintf("%s/%s/index.html", baseUrl, userId)
 
 	bucketPath := fmt.Sprintf("%s/%s", fileUploadPath, userId)
 	destination := fmt.Sprintf("%s/%s", bucketPath, fileName)
 
 	if _, err := os.Stat(bucketPath); err == nil {
-		return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), nil
+		return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), staticSitePublicUrl, nil
 	}
 
 	url := fmt.Sprintf("%s/%s", baseUrl, userId)
@@ -58,10 +62,27 @@ func SaveUserQr(userId string) (string, error) {
 
 	err := qrCode.WriteFile(256, destination)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), nil
+	qrUrl := fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName)
+
+	// Generate static web page
+	sitePath := fmt.Sprintf("%s/%s", staticSitePath, userId)
+	staticSiteDestination := fmt.Sprintf("%s/%s", sitePath, "index.html")
+
+	//Create static site path if not exist
+	_ = os.MkdirAll(sitePath, os.ModePerm)
+
+	//Generate static file content
+	htmlContent := helpers.GenerateStaticSite(qrUrl, userId)
+
+	err = os.WriteFile(staticSiteDestination, []byte(htmlContent), 0644) //create a new file
+	if err != nil {
+		return "", "", err
+	}
+
+	return qrUrl, staticSitePublicUrl, nil
 
 }
 

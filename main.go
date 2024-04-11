@@ -9,6 +9,7 @@ func main() {
 	app := fiber.New()
 
 	app.Static("/media/uploads", "/uploads")
+	app.Static("/memory", "/views")
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World!")
