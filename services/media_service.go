@@ -54,8 +54,7 @@ func SaveUserQr(userId string) (string, string, error) {
 		return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), staticSitePublicUrl, nil
 	}
 
-	url := fmt.Sprintf("%s/%s", baseUrl, userId)
-	qrCode, _ := qrcode.New(url, qrcode.Medium)
+	qrCode, _ := qrcode.New(staticSitePublicUrl, qrcode.Medium)
 
 	//Create bucket if not exist
 	_ = os.MkdirAll(bucketPath, os.ModePerm)
