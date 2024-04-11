@@ -19,12 +19,11 @@ func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) e
 	fileExt := strings.Split(file.Filename, ".")[1]
 	newFile := fmt.Sprintf("%s.%s", filename, fileExt)
 
-	// Create file bucket if not exist
 	bucketPath := fmt.Sprintf("./uploads/%s", userId)
-
-	_ = os.MkdirAll(bucketPath, os.ModePerm)
-
 	destination := fmt.Sprintf("%s/%s", bucketPath, newFile)
+
+	//Create bucket if not exist
+	_ = os.MkdirAll(bucketPath, os.ModePerm)
 
 	if err := c.SaveFile(file, destination); err != nil {
 		return err
@@ -34,17 +33,21 @@ func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) e
 }
 
 func SaveUserQr(userId string) (string, error) {
-	url := fmt.Sprintf("http://memorize.com/memory/%s", userId)
 
-	qrCode, _ := qrcode.New(url, qrcode.Medium)
 	fileName := fmt.Sprintf("%s-qr.png", userId)
 
-	// Create file bucket if not exist
 	bucketPath := fmt.Sprintf("./uploads/%s", userId)
-
-	_ = os.MkdirAll(bucketPath, os.ModePerm)
-
 	destination := fmt.Sprintf("%s/%s", bucketPath, fileName)
+
+	if _, err := os.Stat("sample.txt"); err == nil {
+		return fmt.Sprintf("http://localhost:3000/media/uploads/%s/%s", userId, fileName), nil
+	}
+
+	url := fmt.Sprintf("http://memorize.com/memory/%s", userId)
+	qrCode, _ := qrcode.New(url, qrcode.Medium)
+
+	//Create bucket if not exist
+	_ = os.MkdirAll(bucketPath, os.ModePerm)
 
 	err := qrCode.WriteFile(256, destination)
 	if err != nil {
@@ -52,6 +55,7 @@ func SaveUserQr(userId string) (string, error) {
 	}
 
 	return fmt.Sprintf("http://localhost:3000/media/uploads/%s/%s", userId, fileName), nil
+
 }
 
 func FetchUserUploads(userId string) ([]string, error) {
