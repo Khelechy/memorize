@@ -17,11 +17,15 @@ func CreateUser(c fiber.Ctx) error {
 	data := map[string]interface{}{
 		"userId": userId,
 	}
-	return c.JSON(fiber.Map{"status": 201, "message": "User created successfully", "data": data})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User created successfully", "data": data})
 }
 
 func GetUserQr(c fiber.Ctx) error {
 	userId := c.Params("userId")
+
+	if len(userId) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User id is required"})
+	}
 
 	qr, err := services.SaveUserQr(userId)
 
@@ -32,6 +36,6 @@ func GetUserQr(c fiber.Ctx) error {
 	data := map[string]interface{}{
 		"qrUrl": qr,
 	}
-	
-	return c.JSON(fiber.Map{"status": 201, "message": "User QR generated successfully", "data": data})
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User QR generated successfully", "data": data})
 }

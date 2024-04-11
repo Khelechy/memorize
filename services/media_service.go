@@ -11,6 +11,13 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
+const (
+	publicStaticMediaRouteUrl = "http://localhost:3000/media/uploads"
+	publicStaticMediaRoute = "media/uploads"
+	fileUploadPath         = "./uploads"
+	baseUrl                = "http://memorize.com/memory"
+)
+
 func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) error {
 
 	uniqueId := uuid.New()
@@ -19,7 +26,7 @@ func HandleMediaUpload(userId string, file *multipart.FileHeader, c fiber.Ctx) e
 	fileExt := strings.Split(file.Filename, ".")[1]
 	newFile := fmt.Sprintf("%s.%s", filename, fileExt)
 
-	bucketPath := fmt.Sprintf("./uploads/%s", userId)
+	bucketPath := fmt.Sprintf("%s/%s", fileUploadPath, userId)
 	destination := fmt.Sprintf("%s/%s", bucketPath, newFile)
 
 	//Create bucket if not exist
@@ -36,14 +43,14 @@ func SaveUserQr(userId string) (string, error) {
 
 	fileName := fmt.Sprintf("%s-qr.png", userId)
 
-	bucketPath := fmt.Sprintf("./uploads/%s", userId)
+	bucketPath := fmt.Sprintf("%s/%s", fileUploadPath, userId)
 	destination := fmt.Sprintf("%s/%s", bucketPath, fileName)
 
-	if _, err := os.Stat("sample.txt"); err == nil {
-		return fmt.Sprintf("http://localhost:3000/media/uploads/%s/%s", userId, fileName), nil
+	if _, err := os.Stat(bucketPath); err == nil {
+		return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), nil
 	}
 
-	url := fmt.Sprintf("http://memorize.com/memory/%s", userId)
+	url := fmt.Sprintf("%s/%s", baseUrl, userId)
 	qrCode, _ := qrcode.New(url, qrcode.Medium)
 
 	//Create bucket if not exist
@@ -54,13 +61,13 @@ func SaveUserQr(userId string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("http://localhost:3000/media/uploads/%s/%s", userId, fileName), nil
+	return fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, fileName), nil
 
 }
 
 func FetchUserUploads(userId string) ([]string, error) {
 
-	bucketPath := fmt.Sprintf("./uploads/%s", userId)
+	bucketPath := fmt.Sprintf("%s/%s", fileUploadPath, userId)
 
 	files, err := os.ReadDir(bucketPath)
 	if err != nil {
@@ -70,7 +77,7 @@ func FetchUserUploads(userId string) ([]string, error) {
 	var mediaLocation []string
 
 	for _, file := range files {
-		mediaLocation = append(mediaLocation, fmt.Sprintf("media/uploads/%s/%s", userId, file.Name()))
+		mediaLocation = append(mediaLocation, fmt.Sprintf("%s/%s/%s", publicStaticMediaRouteUrl, userId, file.Name()))
 	}
 
 	return mediaLocation, nil

@@ -9,6 +9,10 @@ import (
 func FetchMedia(c fiber.Ctx) error {
 	userId := c.Params("userId")
 
+	if len(userId) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User id is required"})
+	}
+
 	mediaLocation, err := services.FetchUserUploads(userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(err.Error())
@@ -23,6 +27,11 @@ func FetchMedia(c fiber.Ctx) error {
 
 func UploadMedia(c fiber.Ctx) error {
 	userId:= c.Params("userId")
+
+	if len(userId) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User id is required"})
+	}
+	
 	file, err := c.FormFile("file")
 
 	if err != nil {
