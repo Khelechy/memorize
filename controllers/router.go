@@ -15,5 +15,6 @@ func RegisterRoutes(app *fiber.App) {
 	routes.Get("/media/:userId", media.FetchMedia)
 
 	routes.Post("/user", user.CreateUser)
+	routes.Get("/user/:userId/qr", user.GetUserQr)
 
 }
